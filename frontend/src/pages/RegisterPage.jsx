@@ -49,8 +49,8 @@ export default function RegisterPage() {
     setError(null);
     try {
       await loginWithGoogle({
-        email: 'vasista.srikalyan@example.com',
-        name: 'Vasista Sri Kalyan'
+        email: 'pranathigudepu@gmail.com',
+        name: 'Pranathi Gudepu'
       });
       navigate('/dashboard', { replace: true });
     } catch (err) {
