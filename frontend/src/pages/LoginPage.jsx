@@ -18,8 +18,11 @@ import VeraParticleEngine from '../components/intro/VeraParticleEngine';
 // Scenic Eiffel Tower Avatar matching user's Google profile photo
 function ScenicAvatar() {
   return (
-    <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-white/20 shadow-sm relative bg-[#74b9ff] flex items-center justify-center">
-      <svg viewBox="0 0 40 40" className="w-full h-full">
+    <div
+      className="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-white/20 shadow-sm relative bg-[#74b9ff] flex items-center justify-center"
+      style={{ width: '32px', height: '32px', minWidth: '32px', minHeight: '32px' }}
+    >
+      <svg viewBox="0 0 40 40" style={{ width: '32px', height: '32px' }}>
         <defs>
           <linearGradient id="eiffelSky" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#6bb5ff" />
@@ -244,16 +247,24 @@ export default function LoginPage() {
       <div className="absolute bottom-1/4 right-1/3 w-96 h-96 bg-[#FFD166]/10 rounded-full blur-3xl pointer-events-none" />
 
       {/* Main Centered Authentication Card */}
-      <div className="relative z-10 w-full max-w-[420px] my-auto">
+      <div className="relative z-10 w-full max-w-[420px] my-auto" style={{ maxWidth: '420px' }}>
         <div className="rounded-3xl p-7 sm:p-8 backdrop-blur-2xl bg-[#130E2E]/95 border border-[#9B6DFF]/30 shadow-[0_20px_50px_rgba(0,0,0,0.7),_0_0_30px_rgba(155,109,255,0.25),_inset_0_1px_1px_rgba(255,255,255,0.2)] text-white relative overflow-hidden">
           {/* Subtle Top Golden Accent Rim */}
           <div className="absolute top-0 left-1/4 right-1/4 h-[1px] bg-gradient-to-r from-transparent via-[#FFD166] to-transparent opacity-80" />
 
           {/* VERA Brand Identity Header */}
           <div className="text-center space-y-2 mb-6">
-            <div className="inline-flex items-center gap-2.5 mb-1">
-              <div className="w-10 h-10 rounded-2xl bg-white/10 border border-[#9B6DFF]/40 p-1 flex items-center justify-center shadow-[0_0_20px_rgba(155,109,255,0.4)] overflow-hidden">
-                <img src="/vera-logo-icon.png" alt="VERA" className="w-full h-full object-contain" />
+            <div className="inline-flex items-center justify-center gap-2.5 mb-1">
+              <div
+                className="w-10 h-10 rounded-2xl bg-white/10 border border-[#9B6DFF]/40 p-1 flex items-center justify-center shadow-[0_0_20px_rgba(155,109,255,0.4)] overflow-hidden shrink-0"
+                style={{ width: '40px', height: '40px', minWidth: '40px', minHeight: '40px' }}
+              >
+                <img
+                  src="/vera-logo-icon.png"
+                  alt="VERA"
+                  className="object-contain"
+                  style={{ width: '32px', height: '32px', maxWidth: '32px', maxHeight: '32px' }}
+                />
               </div>
               <span className="text-2xl font-black tracking-wider bg-gradient-to-r from-white via-[#DEB0C8] to-[#FFD166] bg-clip-text text-transparent">
                 VERA
@@ -298,8 +309,12 @@ export default function LoginPage() {
                 onClick={handleOpenGoogleAccounts}
                 disabled={loading}
                 className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 hover:border-[#FFD166]/40 text-white text-xs font-semibold shadow-sm transition-all duration-200 active:scale-[0.99]"
+                style={{ minHeight: '42px' }}
               >
-                <svg className="w-4 h-4" viewBox="0 0 24 24">
+                <svg
+                  style={{ width: '18px', height: '18px', minWidth: '18px', minHeight: '18px' }}
+                  viewBox="0 0 24 24"
+                >
                   <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.67v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.16z" />
                   <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z" />
                   <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z" />
@@ -323,7 +338,7 @@ export default function LoginPage() {
                     Email address
                   </label>
                   <div className="relative">
-                    <Mail className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <Mail className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" style={{ width: '16px', height: '16px' }} />
                     <input
                       id="login-email-input"
                       type="email"
@@ -346,7 +361,7 @@ export default function LoginPage() {
                     </span>
                   </div>
                   <div className="relative">
-                    <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" style={{ width: '16px', height: '16px' }} />
                     <input
                       type={showPassword ? 'text' : 'password'}
                       required
@@ -360,7 +375,7 @@ export default function LoginPage() {
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-white"
                     >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {showPassword ? <EyeOff className="w-4 h-4" style={{ width: '16px', height: '16px' }} /> : <Eye className="w-4 h-4" style={{ width: '16px', height: '16px' }} />}
                     </button>
                   </div>
                 </div>
@@ -384,9 +399,10 @@ export default function LoginPage() {
                   type="submit"
                   disabled={loading}
                   className="w-full mt-2 py-3 rounded-xl bg-gradient-to-r from-[#7B61FF] via-[#9B6DFF] to-[#6366F1] hover:brightness-110 active:scale-[0.99] text-white font-semibold text-xs shadow-[0_0_20px_rgba(155,109,255,0.4)] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  style={{ minHeight: '44px' }}
                 >
                   {loading ? 'Signing In...' : 'Sign In'}
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight className="w-4 h-4" style={{ width: '16px', height: '16px' }} />
                 </button>
               </form>
 
@@ -407,8 +423,14 @@ export default function LoginPage() {
             <div className="space-y-4 pt-1">
               {/* Google Brand Header */}
               <div className="text-center space-y-1.5">
-                <div className="w-7 h-7 rounded-full bg-white p-1 mx-auto flex items-center justify-center shadow-sm">
-                  <svg className="w-5 h-5" viewBox="0 0 24 24">
+                <div
+                  className="w-7 h-7 rounded-full bg-white p-1 mx-auto flex items-center justify-center shadow-sm"
+                  style={{ width: '28px', height: '28px' }}
+                >
+                  <svg
+                    style={{ width: '20px', height: '20px', minWidth: '20px' }}
+                    viewBox="0 0 24 24"
+                  >
                     <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.67v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.16z" />
                     <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z" />
                     <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z" />
@@ -438,7 +460,7 @@ export default function LoginPage() {
                         ) : (
                           <div
                             className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold text-white shadow-sm shrink-0"
-                            style={{ backgroundColor: acc.color }}
+                            style={{ backgroundColor: acc.color, width: '32px', height: '32px', minWidth: '32px' }}
                           >
                             {acc.avatarLetter}
                           </div>
@@ -468,8 +490,11 @@ export default function LoginPage() {
                     onClick={() => setShowAddAccountForm(true)}
                     className="w-full py-2.5 px-2 flex items-center gap-3.5 text-left hover:bg-white/10 rounded-lg transition-colors cursor-pointer group"
                   >
-                    <div className="w-8 h-8 rounded-full border border-white/25 flex items-center justify-center text-gray-300 shrink-0 group-hover:border-white">
-                      <User className="w-4 h-4 text-gray-300" />
+                    <div
+                      className="w-8 h-8 rounded-full border border-white/25 flex items-center justify-center text-gray-300 shrink-0 group-hover:border-white"
+                      style={{ width: '32px', height: '32px', minWidth: '32px' }}
+                    >
+                      <User className="w-4 h-4 text-gray-300" style={{ width: '16px', height: '16px' }} />
                     </div>
                     <div className="text-[13px] font-medium text-white group-hover:text-[#FFD166] transition-colors">
                       Use another account
@@ -513,9 +538,10 @@ export default function LoginPage() {
                     type="submit"
                     disabled={loading}
                     className="w-full py-2.5 rounded-xl bg-[#4285F4] hover:bg-[#3367D6] text-white text-xs font-semibold shadow-md transition-all flex items-center justify-center gap-1.5"
+                    style={{ minHeight: '40px' }}
                   >
                     <span>{loading ? 'Signing in...' : 'Continue with Google'}</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <ArrowRight className="w-3.5 h-3.5" style={{ width: '14px', height: '14px' }} />
                   </button>
 
                   <button
@@ -540,7 +566,7 @@ export default function LoginPage() {
                   onClick={() => setMode('LOGIN')}
                   className="text-xs text-gray-400 hover:text-white flex items-center justify-center gap-1 mx-auto transition-colors"
                 >
-                  <ArrowLeft className="w-3.5 h-3.5" /> Back to email sign in
+                  <ArrowLeft className="w-3.5 h-3.5" style={{ width: '14px', height: '14px' }} /> Back to email sign in
                 </button>
               </div>
             </div>
