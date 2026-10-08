@@ -49,7 +49,7 @@ export default function RegisterPage() {
     setError(null);
     try {
       await loginWithGoogle({
-        email: 'vskvasista@gmail.com',
+        email: 'vasista.srikalyan@example.com',
         name: 'Vasista Sri Kalyan'
       });
       navigate('/dashboard', { replace: true });

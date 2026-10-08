@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Eye,
@@ -7,10 +7,9 @@ import {
   Lock,
   AlertCircle,
   ArrowRight,
-  User,
   ArrowLeft,
-  UserPlus,
-  Sparkles
+  CheckCircle2,
+  User
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { formatUserErrorMessage } from '../../utils/errorHandler';
@@ -48,21 +47,21 @@ const GOOGLE_ACCOUNTS_PRESETS = [
     name: 'Pranathi Gudepu',
     email: 'pranathigudepu@gmail.com',
     avatarLetter: 'P',
-    color: '#0B57D0',
+    color: '#0B57D0', // Google rich blue
     isScenic: false
   },
   {
     name: 'Pranathi Gudepu',
     email: 'pranathigudepu60@gmail.com',
     avatarLetter: 'P',
-    color: '#0F5223',
+    color: '#0F5223', // Dark forest green
     isScenic: false
   },
   {
     name: 'pranathi Gudepu',
     email: 'pranathi252106@gmail.com',
     avatarLetter: 'p',
-    color: '#7B1FA2',
+    color: '#7B1FA2', // Purple
     isScenic: false
   },
   {
@@ -70,44 +69,40 @@ const GOOGLE_ACCOUNTS_PRESETS = [
     email: 'vskvasista@gmail.com',
     avatarLetter: 'V',
     color: '#4285F4',
-    isScenic: true
+    isScenic: true // Eiffel Tower photo
   },
   {
-    name: '',
+    name: '', // displays email only as in screenshot
     email: 'preethi252106@gmail.com',
     avatarLetter: 'p',
-    color: '#4A148C',
+    color: '#4A148C', // Deep violet
     isScenic: false
   },
   {
     name: 'preethi',
     email: 'preethii1505@gmail.com',
     avatarLetter: 'p',
-    color: '#A0410D',
+    color: '#A0410D', // Burnt rust
     isScenic: false
   }
 ];
 
 export default function VeraInteractiveLoginCard({ scrollProgress = 0, onScrollToSection }) {
   const navigate = useNavigate();
-  const { login, register, loginWithGoogle, authNotice, clearAuthNotice } = useAuth();
+  const { login, loginWithGoogle, authNotice, clearAuthNotice } = useAuth();
 
-  // Navigation mode: 'LOGIN' | 'REGISTER' | 'GOOGLE_ACCOUNTS'
+  // Navigation mode: 'LOGIN' | 'GOOGLE_ACCOUNTS'
   const [mode, setMode] = useState('LOGIN');
 
   // Form states
-  const [loginData, setLoginData] = useState({
-    email: '',
-    password: ''
-  });
-  const [registerData, setRegisterData] = useState({
-    name: '',
+  const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [successNotice, setSuccessNotice] = useState(null);
 
   // Real Google Accounts loaded dynamically from localStorage or presets
   const [savedGoogleAccounts, setSavedGoogleAccounts] = useState(() => {
@@ -120,7 +115,7 @@ export default function VeraInteractiveLoginCard({ scrollProgress = 0, onScrollT
           GOOGLE_ACCOUNTS_PRESETS.forEach((a) => map.set(a.email.toLowerCase(), a));
           parsed.forEach((a) => {
             if (map.has(a.email.toLowerCase())) {
-              map.set(a.email.toLowerCase(), { ...map.get(a.email.toLowerCase()), ...a });
+              map.set(a.email.toLowerCase(), { ...map.get(a.email.toLowerCase()), ...a, name: map.get(a.email.toLowerCase()).name });
             } else {
               map.set(a.email.toLowerCase(), a);
             }
@@ -129,51 +124,106 @@ export default function VeraInteractiveLoginCard({ scrollProgress = 0, onScrollT
         }
       }
     } catch {
-      // Ignore
+      // Ignore parse errors
     }
     return GOOGLE_ACCOUNTS_PRESETS;
   });
+
+  // Selected Google account
+  const [, setSelectedGoogleAccount] = useState(null);
 
   // Input for adding user's actual Google account
   const [newGoogleEmail, setNewGoogleEmail] = useState('');
   const [newGoogleName, setNewGoogleName] = useState('');
   const [showAddAccountForm, setShowAddAccountForm] = useState(false);
 
+  // Save real Google accounts to localStorage
+  const saveAccountsToStorage = (accounts) => {
+    setSavedGoogleAccounts(accounts);
+    try {
+      localStorage.setItem('vera_saved_google_accounts', JSON.stringify(accounts));
+    } catch (err) {
+      console.warn('Failed to save Google accounts to localStorage:', err);
+    }
+  };
+
+  // Add an actual Google account and immediately log in
+  const handleAddRealGoogleAccount = (e) => {
+    e?.preventDefault();
+    const email = newGoogleEmail.trim().toLowerCase();
+    if (!email || !email.includes('@')) {
+      setError('Please enter a valid Google Account email.');
+      return;
+    }
+
+    const defaultName = newGoogleName.trim() || email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    const colors = ['#4285F4', '#34A853', '#FBBC05', '#EA4335', '#7B61FF', '#9B6DFF'];
+    const assignedColor = colors[Math.abs(email.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)) % colors.length];
+
+    const newAcc = {
+      email,
+      name: defaultName,
+      avatarLetter: defaultName[0].toUpperCase(),
+      color: assignedColor,
+      accountType: 'Google Account',
+      isScenic: false
+    };
+
+    // Prevent duplicates
+    const filtered = savedGoogleAccounts.filter(a => a.email.toLowerCase() !== email);
+    const updated = [newAcc, ...filtered];
+    saveAccountsToStorage(updated);
+
+    setNewGoogleEmail('');
+    setNewGoogleName('');
+    setShowAddAccountForm(false);
+    setError(null);
+
+    // Immediately select and log in directly
+    handleSelectGoogleAccount(newAcc);
+  };
+
   // Easing & scroll emergence
   const p = Math.max(0, Math.min(1, scrollProgress));
   let cardOpacity = 0;
   let cardTranslateY = 50;
   let cardScale = 0.94;
-  let isInteractive = false;
 
   if (mode !== 'LOGIN') {
+    // When actively selecting an account, keep card 100% visible & interactive
     cardOpacity = 1;
     cardTranslateY = 0;
     cardScale = 1.0;
-    isInteractive = true;
   } else if (p >= 0.50 && p < 0.68) {
     const normP = (p - 0.50) / 0.18;
     cardOpacity = normP;
     cardTranslateY = 40 * (1 - normP);
     cardScale = 0.94 + 0.06 * normP;
-    isInteractive = true;
   } else if (p >= 0.68 && p <= 0.82) {
     cardOpacity = 1;
     cardTranslateY = 0;
     cardScale = 1.0;
-    isInteractive = true;
   } else if (p > 0.82 && p < 0.92) {
     const fadeP = (p - 0.82) / 0.10;
     cardOpacity = Math.max(0, 1 - fadeP);
     cardTranslateY = -40 * fadeP;
     cardScale = 1.0 - 0.05 * fadeP;
-    isInteractive = true;
   }
 
-  // 1. User selects an account from Google suggestions -> Direct Login (NO 2SV)
+  // 1. Open Google Account Chooser
+  const handleOpenGoogleAccounts = () => {
+    setError(null);
+    setSuccessNotice(null);
+    setShowAddAccountForm(false);
+    setMode('GOOGLE_ACCOUNTS');
+  };
+
+  // 2. User selects an account from suggestions -> Direct Login (NO 2-Step Verification)
   const handleSelectGoogleAccount = async (account) => {
+    setSelectedGoogleAccount(account);
     setError(null);
     setLoading(true);
+
     try {
       await loginWithGoogle({
         email: account.email,
@@ -187,80 +237,19 @@ export default function VeraInteractiveLoginCard({ scrollProgress = 0, onScrollT
     }
   };
 
-  // Add & immediately login with new Google account
-  const handleAddRealGoogleAccount = async (e) => {
-    e?.preventDefault();
-    const email = newGoogleEmail.trim().toLowerCase();
-    if (!email || !email.includes('@')) {
-      setError('Please enter a valid Google Account email.');
-      return;
-    }
-
-    const defaultName = newGoogleName.trim() || email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
-    const colors = ['#4285F4', '#34A853', '#FBBC05', '#EA4335', '#7B61FF', '#9B6DFF'];
-    const assignedColor = colors[Math.abs(email.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)) % colors.length];
-
-    const newAcc = {
-      email,
-      name: defaultName,
-      avatarLetter: defaultName[0].toUpperCase(),
-      color: assignedColor,
-      isScenic: false
-    };
-
-    const filtered = savedGoogleAccounts.filter((a) => a.email.toLowerCase() !== email);
-    const updated = [newAcc, ...filtered];
-    setSavedGoogleAccounts(updated);
-    try {
-      localStorage.setItem('vera_saved_google_accounts', JSON.stringify(updated));
-    } catch {}
-
-    setNewGoogleEmail('');
-    setNewGoogleName('');
-    setShowAddAccountForm(false);
-
-    // Direct Login
-    await handleSelectGoogleAccount(newAcc);
-  };
-
-  // 2. Standard Credentials Login -> Direct Login (NO 2SV)
-  const handleLoginSubmit = async (e) => {
+  // 3. Standard Credentials Submit -> Direct Login (NO 2-Step Verification)
+  const handleCredentialsSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-    const email = loginData.email.trim();
-    if (!email || !loginData.password) return;
+    const email = formData.email.trim();
+    if (!email || !formData.password) return;
 
     setLoading(true);
     try {
-      await login(email, loginData.password);
+      await login(email, formData.password);
       navigate('/dashboard', { replace: true });
     } catch (err) {
-      setError(formatUserErrorMessage(err, 'Invalid email or password.'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 3. Create Account Submit -> Direct Registration (NO 2SV)
-  const handleRegisterSubmit = async (e) => {
-    e.preventDefault();
-    setError(null);
-    const name = registerData.name.trim();
-    const email = registerData.email.trim();
-    const password = registerData.password;
-
-    if (!email || !password) return;
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters.');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await register(name || email.split('@')[0], email, password);
-      navigate('/dashboard', { replace: true });
-    } catch (err) {
-      setError(formatUserErrorMessage(err, 'Failed to create account. Please try again.'));
+      setError(formatUserErrorMessage(err, 'Invalid credentials. Please verify and try again.'));
     } finally {
       setLoading(false);
     }
@@ -295,6 +284,14 @@ export default function VeraInteractiveLoginCard({ scrollProgress = 0, onScrollT
           </div>
         )}
 
+        {/* Success / Status feedback */}
+        {successNotice && (
+          <div className="p-3 mb-3.5 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-xs text-emerald-200 flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>{successNotice}</span>
+          </div>
+        )}
+
         {/* Error notification */}
         {error && (
           <div className="p-3 mb-3.5 rounded-xl bg-red-950/60 border border-red-500/40 text-xs text-red-200 flex items-start gap-2.5">
@@ -304,7 +301,7 @@ export default function VeraInteractiveLoginCard({ scrollProgress = 0, onScrollT
         )}
 
         {/* ======================================================== */}
-        {/* VIEW 1: Sign In                                          */}
+        {/* VIEW 1: Standard Login Card                              */}
         {/* ======================================================== */}
         {mode === 'LOGIN' && (
           <div>
@@ -312,11 +309,7 @@ export default function VeraInteractiveLoginCard({ scrollProgress = 0, onScrollT
             <div className="space-y-2.5 pt-1">
               <button
                 type="button"
-                onClick={() => {
-                  setError(null);
-                  setShowAddAccountForm(false);
-                  setMode('GOOGLE_ACCOUNTS');
-                }}
+                onClick={handleOpenGoogleAccounts}
                 disabled={loading}
                 className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 hover:border-[#FFD166]/40 text-white text-xs font-semibold shadow-sm transition-all duration-200 active:scale-[0.99]"
               >
@@ -339,7 +332,7 @@ export default function VeraInteractiveLoginCard({ scrollProgress = 0, onScrollT
             </div>
 
             {/* Credentials Form */}
-            <form onSubmit={handleLoginSubmit} className="space-y-3">
+            <form onSubmit={handleCredentialsSubmit} className="space-y-3">
               <div>
                 <label className="block text-xs font-medium text-gray-300 mb-1">
                   Email
@@ -350,8 +343,8 @@ export default function VeraInteractiveLoginCard({ scrollProgress = 0, onScrollT
                     id="login-email-input"
                     type="email"
                     required
-                    value={loginData.email}
-                    onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     placeholder="your.email@example.com"
                     className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-white/5 border border-white/15 focus:border-[#9B6DFF] focus:bg-white/10 text-xs text-white placeholder-gray-500 focus:outline-none transition-all"
                   />
@@ -369,8 +362,8 @@ export default function VeraInteractiveLoginCard({ scrollProgress = 0, onScrollT
                   <input
                     type={showPassword ? 'text' : 'password'}
                     required
-                    value={loginData.password}
-                    onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     placeholder="Enter your password"
                     className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-white/5 border border-white/15 focus:border-[#9B6DFF] focus:bg-white/10 text-xs text-white placeholder-gray-500 focus:outline-none transition-all"
                   />
@@ -397,16 +390,9 @@ export default function VeraInteractiveLoginCard({ scrollProgress = 0, onScrollT
 
             {/* Footer Navigation */}
             <div className="text-center pt-3 text-xs text-gray-400 flex items-center justify-between">
-              <button
-                type="button"
-                onClick={() => {
-                  setError(null);
-                  setMode('REGISTER');
-                }}
-                className="text-[#DEB0C8] hover:text-white hover:underline transition-colors font-medium"
-              >
+              <Link to="/register" className="text-[#DEB0C8] hover:text-white hover:underline transition-colors">
                 Create account
-              </button>
+              </Link>
               <button
                 type="button"
                 onClick={() => onScrollToSection?.(0.85)}
@@ -420,137 +406,7 @@ export default function VeraInteractiveLoginCard({ scrollProgress = 0, onScrollT
         )}
 
         {/* ======================================================== */}
-        {/* VIEW 2: Create Account                                   */}
-        {/* ======================================================== */}
-        {mode === 'REGISTER' && (
-          <div className="animate-fadeIn">
-            <div className="text-center mb-4">
-              <h3 className="text-base font-bold text-white tracking-tight">Create your account</h3>
-              <p className="text-xs text-gray-400">Start making evidence-backed decisions</p>
-            </div>
-
-            {/* Google Sign In Button */}
-            <div className="space-y-2.5">
-              <button
-                type="button"
-                onClick={() => {
-                  setError(null);
-                  setShowAddAccountForm(false);
-                  setMode('GOOGLE_ACCOUNTS');
-                }}
-                disabled={loading}
-                className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 hover:border-[#FFD166]/40 text-white text-xs font-semibold shadow-sm transition-all duration-200 active:scale-[0.99]"
-              >
-                <svg className="w-4 h-4" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.67v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.16z" />
-                  <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z" />
-                  <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z" />
-                  <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z" />
-                </svg>
-                Sign up with Google
-              </button>
-            </div>
-
-            {/* Divider */}
-            <div className="relative my-3 flex items-center justify-center">
-              <div className="w-full border-t border-white/10" />
-              <span className="absolute px-3 bg-[#130E2E] text-[11px] text-gray-400 font-medium">
-                or with email
-              </span>
-            </div>
-
-            {/* Register Form */}
-            <form onSubmit={handleRegisterSubmit} className="space-y-2.5">
-              <div>
-                <label className="block text-xs font-medium text-gray-300 mb-1">
-                  Full Name
-                </label>
-                <div className="relative">
-                  <User className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    required
-                    value={registerData.name}
-                    onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
-                    placeholder="Your Full Name"
-                    className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-white/5 border border-white/15 focus:border-[#9B6DFF] focus:bg-white/10 text-xs text-white placeholder-gray-500 focus:outline-none transition-all"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-gray-300 mb-1">
-                  Email
-                </label>
-                <div className="relative">
-                  <Mail className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="email"
-                    required
-                    value={registerData.email}
-                    onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
-                    placeholder="your.email@example.com"
-                    className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-white/5 border border-white/15 focus:border-[#9B6DFF] focus:bg-white/10 text-xs text-white placeholder-gray-500 focus:outline-none transition-all"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-gray-300 mb-1">
-                  Password
-                </label>
-                <div className="relative">
-                  <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    value={registerData.password}
-                    onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
-                    placeholder="At least 6 characters"
-                    className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-white/5 border border-white/15 focus:border-[#9B6DFF] focus:bg-white/10 text-xs text-white placeholder-gray-500 focus:outline-none transition-all"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-white"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Submit Action */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full mt-2 py-3 rounded-xl bg-gradient-to-r from-[#7B61FF] via-[#9B6DFF] to-[#6366F1] hover:brightness-110 active:scale-[0.99] text-white font-semibold text-xs shadow-[0_0_20px_rgba(155,109,255,0.4)] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {loading ? 'Creating Account...' : 'Create Account'}
-                <UserPlus className="w-4 h-4" />
-              </button>
-            </form>
-
-            {/* Footer Navigation */}
-            <div className="text-center pt-3 text-xs text-gray-400 flex items-center justify-between">
-              <button
-                type="button"
-                onClick={() => {
-                  setError(null);
-                  setMode('LOGIN');
-                }}
-                className="text-[#DEB0C8] hover:text-white hover:underline transition-colors font-medium"
-              >
-                ← Already have an account? Sign In
-              </button>
-              <Link to="/register" className="text-gray-400 hover:text-white text-[11px]">
-                Full page →
-              </Link>
-            </div>
-          </div>
-        )}
-
-        {/* ======================================================== */}
-        {/* VIEW 3: Google Account Chooser (Instant Login, No 2SV)   */}
+        {/* VIEW 2: Google Account Chooser (Instant Sign In, No 2SV) */}
         {/* ======================================================== */}
         {mode === 'GOOGLE_ACCOUNTS' && (
           <div className="space-y-4 pt-1 animate-fadeIn">
@@ -612,7 +468,7 @@ export default function VeraInteractiveLoginCard({ scrollProgress = 0, onScrollT
                   </div>
                 ))}
 
-                {/* Use another account option */}
+                {/* Use another account option matching user screenshot */}
                 <div
                   onClick={() => setShowAddAccountForm(true)}
                   className="w-full py-2.5 px-2 flex items-center gap-3.5 text-left hover:bg-white/8 transition-colors cursor-pointer group"
@@ -627,7 +483,7 @@ export default function VeraInteractiveLoginCard({ scrollProgress = 0, onScrollT
               </div>
             )}
 
-            {/* Bottom legal notice matching screenshot */}
+            {/* Bottom legal notice matching user screenshot */}
             {!showAddAccountForm && (
               <div className="pt-2 text-[11px] text-gray-400 text-left leading-relaxed px-1">
                 Before using this app, you can review VERA&apos;s{' '}
@@ -691,14 +547,14 @@ export default function VeraInteractiveLoginCard({ scrollProgress = 0, onScrollT
               To continue, Google will share your name, email address, and profile picture with VERA.
             </p>
 
-            {/* Back to VERA Sign In */}
+            {/* Back to VERA Login */}
             <div className="pt-1 text-center">
               <button
                 type="button"
                 onClick={() => setMode('LOGIN')}
                 className="text-xs text-gray-400 hover:text-white flex items-center justify-center gap-1 mx-auto"
               >
-                <ArrowLeft className="w-3.5 h-3.5" /> Back to Sign In
+                <ArrowLeft className="w-3.5 h-3.5" /> Cancel
               </button>
             </div>
           </div>
