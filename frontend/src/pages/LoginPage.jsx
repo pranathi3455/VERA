@@ -124,19 +124,9 @@ export default function LoginPage() {
 
   // Stage labels for progress HUD
   const stages = [
-    { name: 'Awakening', progress: 0.05 },
-    { name: 'Formation', progress: 0.28 },
-    { name: 'Identity', progress: 0.48 },
-    { name: 'Sign In', progress: 0.70 },
-    { name: 'Intelligence', progress: 0.90 },
+    { name: 'Sign In', progress: 0.0 },
+    { name: 'Decision Intelligence', progress: 0.85 },
   ];
-
-  // Current active stage index
-  const activeStageIdx = scrollProgress < 0.20 ? 0
-    : scrollProgress < 0.40 ? 1
-    : scrollProgress < 0.60 ? 2
-    : scrollProgress < 0.80 ? 3
-    : 4;
 
   return (
     <div
@@ -144,7 +134,7 @@ export default function LoginPage() {
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       className="relative w-full bg-[#0E0B20] text-white selection:bg-[#9B6DFF] selection:text-white"
-      style={{ height: '420vh' }}
+      style={{ height: '220vh' }}
     >
       {/* Pinned Sticky Viewport (100vh) */}
       <div className="sticky top-0 h-screen w-full overflow-hidden select-none">
@@ -154,79 +144,42 @@ export default function LoginPage() {
           mousePos={mousePos}
         />
 
-        {/* State 0: Quiet Ambient Intro Eyebrow & Hint (0.00 - 0.25) */}
-        {scrollProgress < 0.28 && (
-          <div
-            className="absolute inset-0 flex flex-col items-center justify-between py-12 px-6 pointer-events-none z-10 transition-opacity duration-300"
-            style={{
-              opacity: Math.max(0, 1 - scrollProgress * 3.8),
-            }}
-          >
-            {/* Top Brand Minimal Badge */}
-            <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md shadow-[0_0_20px_rgba(155,109,255,0.2)]">
-              <span className="w-2 h-2 rounded-full bg-[#FFD166] animate-pulse" />
-              <span className="text-xs font-semibold tracking-wider text-[#DEB0C8] uppercase font-mono">
-                VERA Intelligence Field
-              </span>
-            </div>
-
-            {/* Central Minimal Greeting */}
-            <div className="text-center max-w-md space-y-3">
-              <h1 className="text-2xl sm:text-4xl font-extralight tracking-widest uppercase text-white/90">
-                VERA
-              </h1>
-              <p className="text-xs sm:text-sm text-[#CBD5E1]/70 font-light tracking-wide leading-relaxed">
-                Move cursor to interact with the field. Scroll to enter.
-              </p>
-            </div>
-
-            {/* Bottom Scroll Prompt */}
-            <div className="flex flex-col items-center gap-2 text-gray-400 animate-bounce">
-              <span className="text-[11px] font-mono tracking-widest text-[#FFD166]">
-                SCROLL TO AWAKEN
-              </span>
-              <ChevronDown className="w-4 h-4 text-[#FFD166]" />
-            </div>
-          </div>
-        )}
-
-        {/* State 2 & 3: VERA 4-Pointed Crystal Star Logo (0.30 - 0.78) */}
+        {/* VERA 4-Pointed Crystal Star Logo crowned above card */}
         <VeraIntroLogo
           scrollProgress={scrollProgress}
         />
 
-        {/* State 3: Frosted Glassmorphic Interactive Login Card (0.54 - 0.84) */}
+        {/* Frosted Glassmorphic Interactive Login Card (Normal condition: visible immediately) */}
         <VeraInteractiveLoginCard
           scrollProgress={scrollProgress}
           onScrollToSection={(p) => scrollToStage(p)}
         />
 
-        {/* State 4: Decision Intelligence Showcase (0.84 - 1.00) */}
+        {/* Decision Intelligence Showcase (available on scroll down) */}
         <VeraTelemetryShowcase
           scrollProgress={scrollProgress}
           mousePos={mousePos}
-          onJumpToLogin={() => scrollToStage(0.70)}
+          onJumpToLogin={() => scrollToStage(0.0)}
           onJumpToProgress={(p) => scrollToStage(p)}
         />
 
         {/* Quick Nav Header Controls */}
         <div className="absolute top-4 right-6 z-50 flex items-center gap-3">
-          {scrollProgress < 0.60 && (
-            <button
-              onClick={() => scrollToStage(0.70)}
-              className="px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-semibold text-[#FFD166] backdrop-blur-md transition-all shadow-[0_0_15px_rgba(255,209,102,0.3)] hover:scale-105 active:scale-95"
-            >
-              Skip to Sign In →
-            </button>
-          )}
-
-          {scrollProgress >= 0.80 && (
+          {scrollProgress > 0.40 ? (
             <button
               onClick={() => scrollToStage(0.0)}
-              className="p-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white backdrop-blur-md transition-all"
-              title="Return to top"
+              className="px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-semibold text-white backdrop-blur-md transition-all shadow-sm hover:scale-105 active:scale-95 flex items-center gap-1.5"
             >
-              <ArrowUp className="w-4 h-4" />
+              <ArrowUp className="w-3.5 h-3.5 text-[#FFD166]" />
+              <span>Back to Sign In</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => scrollToStage(0.85)}
+              className="px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-semibold text-[#FFD166] backdrop-blur-md transition-all shadow-[0_0_15px_rgba(255,209,102,0.3)] hover:scale-105 active:scale-95 flex items-center gap-1.5"
+            >
+              <span>Explore Features</span>
+              <ChevronDown className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
@@ -241,13 +194,13 @@ export default function LoginPage() {
               key={stage.name}
               onClick={() => scrollToStage(stage.progress)}
               className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${
-                activeStageIdx === idx
+                (scrollProgress < 0.45 ? 0 : 1) === idx
                   ? 'bg-gradient-to-r from-[#7B61FF] to-[#9B6DFF] text-white shadow-[0_0_12px_rgba(155,109,255,0.4)]'
                   : 'text-gray-400 hover:text-gray-200'
               }`}
             >
-              <span className={`w-1.5 h-1.5 rounded-full ${activeStageIdx === idx ? 'bg-[#FFD166]' : 'bg-gray-500'}`} />
-              <span className="hidden sm:inline">{stage.name}</span>
+              <span className={`w-1.5 h-1.5 rounded-full ${(scrollProgress < 0.45 ? 0 : 1) === idx ? 'bg-[#FFD166]' : 'bg-gray-500'}`} />
+              <span>{stage.name}</span>
             </button>
           ))}
         </aside>

@@ -183,28 +183,15 @@ export default function VeraInteractiveLoginCard({ scrollProgress = 0, onScrollT
     handleSelectGoogleAccount(newAcc);
   };
 
-  // Easing & scroll emergence
+  // Card visibility & position: 100% visible on page load (normal condition)
   const p = Math.max(0, Math.min(1, scrollProgress));
-  let cardOpacity = 0;
-  let cardTranslateY = 50;
-  let cardScale = 0.94;
+  let cardOpacity = 1;
+  let cardTranslateY = 0;
+  let cardScale = 1.0;
 
-  if (mode !== 'LOGIN') {
-    // When actively selecting an account, keep card 100% visible & interactive
-    cardOpacity = 1;
-    cardTranslateY = 0;
-    cardScale = 1.0;
-  } else if (p >= 0.50 && p < 0.68) {
-    const normP = (p - 0.50) / 0.18;
-    cardOpacity = normP;
-    cardTranslateY = 40 * (1 - normP);
-    cardScale = 0.94 + 0.06 * normP;
-  } else if (p >= 0.68 && p <= 0.82) {
-    cardOpacity = 1;
-    cardTranslateY = 0;
-    cardScale = 1.0;
-  } else if (p > 0.82 && p < 0.92) {
-    const fadeP = (p - 0.82) / 0.10;
+  if (p > 0.40) {
+    // When scrolling down past the login stage toward telemetry showcase, fade smoothly
+    const fadeP = Math.min(1, (p - 0.40) / 0.35);
     cardOpacity = Math.max(0, 1 - fadeP);
     cardTranslateY = -40 * fadeP;
     cardScale = 1.0 - 0.05 * fadeP;
@@ -255,7 +242,7 @@ export default function VeraInteractiveLoginCard({ scrollProgress = 0, onScrollT
     }
   };
 
-  if (mode === 'LOGIN' && (p < 0.48 || cardOpacity <= 0.01)) {
+  if (cardOpacity <= 0.01) {
     return null;
   }
 

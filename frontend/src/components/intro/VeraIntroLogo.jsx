@@ -15,35 +15,20 @@ import VeraLogoImage from '../common/VeraLogoImage';
 export default function VeraIntroLogo({ scrollProgress = 0 }) {
   const p = Math.max(0, Math.min(1, scrollProgress));
 
-  // Opacity progression
-  let opacity = 0;
-  if (p >= 0.32 && p < 0.46) {
-    opacity = (p - 0.32) / 0.14;
-  } else if (p >= 0.46 && p <= 0.74) {
-    opacity = 1;
-  } else if (p > 0.74 && p <= 0.80) {
-    // Fade out as Telemetry Showcase navbar takes over
-    opacity = Math.max(0, 1 - (p - 0.74) / 0.06);
+  // Opacity progression: 100% visible on page load crowned above the login card
+  let opacity = 1;
+  if (p > 0.40) {
+    // Fade out as Telemetry Showcase takes over
+    opacity = Math.max(0, 1 - (p - 0.40) / 0.35);
   }
 
-  if (p < 0.30 || opacity <= 0.01) {
+  if (opacity <= 0.01) {
     return null;
   }
 
-  // Vertical position interpolation
-  // At center (0px) between 0.35 and 0.50, then slides up to -230px above login card
-  let translateY = 0;
-  let scale = 1.0;
-
-  if (p < 0.48) {
-    translateY = 0;
-    scale = 0.75 + 0.25 * Math.min(1, Math.max(0, (p - 0.32) / 0.16));
-  } else {
-    const ascendP = Math.min(1, (p - 0.48) / 0.22);
-    const eased = easeInOutCubic(ascendP);
-    translateY = -230 * eased;
-    scale = 1.0 - 0.28 * eased;
-  }
+  // Crown position directly above the interactive login card
+  const translateY = -230;
+  const scale = 0.75;
 
   // Orbital ring rotation angle
   const ringRotation = (p * 720) % 360;
